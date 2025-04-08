@@ -1,14 +1,11 @@
-import React from 'react';
-
-import { ChildrenProps, ClassNames } from '@/../@Types/global';
-
 import styles from './Container.module.css';
 
-const Container: React.FC<ChildrenProps & ClassNames> = ({
-  children,
-  className,
-  ...rest
-}) => {
+interface ContainerProps extends React.HTMLAttributes<HTMLDivElement> {
+  children: React.ReactNode;
+  className?: string;
+}
+
+const Container = ({ children, className, ...rest }: ContainerProps) => {
   let containerClassName = styles.space;
 
   if (className) {
