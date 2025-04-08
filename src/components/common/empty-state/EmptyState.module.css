@@ -1,0 +1,6 @@
+.emptyState_content {
+  @apply flex h-[60vh] flex-col items-center justify-evenly;
+}
+.emptyState_content .emptyState_buttons {
+  @apply flex items-center justify-center gap-5;
+}
