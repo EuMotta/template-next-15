@@ -10,12 +10,8 @@
     "prettier": "prettier --write .",
     "lint": "npm run eslint && npm run prettier",
     "format": "next lint --fix && prettier '**/*.{json,yaml}' --write --ignore-path .gitignore",
-    "generate:api": "orval"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
+    "generate:api": "orval",
+    "prepare": "husky"
   },
   "lint-staged": {
     "*.{js,jsx,md,ts,tsx,html,css,scss}": "yarn prettier",
