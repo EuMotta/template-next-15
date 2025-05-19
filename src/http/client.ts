@@ -23,7 +23,7 @@ export const AXIOS_INSTANCE = Axios.create({ baseURL: process.env.API_URL });
  * @returns {Promise<T>} - Uma promessa que resolve com os dados da resposta.
  */
 
-export const http = <T>(
+const http = <T>(
   config: AxiosRequestConfig,
   options?: AxiosRequestConfig
 ): Promise<T> => {
@@ -41,7 +41,7 @@ export const http = <T>(
 
   return promise;
 };
-
+export default http;
 /**
  * @function interceptors.request
  * @summary Interceptor para adicionar o token de autenticação

@@ -42,6 +42,8 @@ export default defineConfig([
     rules: {
       'react/react-in-jsx-scope': 'off',
       'react-hooks/rules-of-hooks': 'error',
+      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-unused-vars': 'warn',
       'react-hooks/exhaustive-deps': 'warn',
       '@typescript-eslint/no-empty-object-type': 'off',
       'import-helpers/order-imports': [

@@ -3,9 +3,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 /**
- * Mapeamento de meses abreviados em pt-BR para seus equivalentes em inglês.
- *
- * @constant {Record<string, string>}
+ * Mapeamento de meses abreviados em pt-BR para inglês.
  */
 const monthMap: Record<string, string> = {
   jan: 'january',
@@ -23,71 +21,66 @@ const monthMap: Record<string, string> = {
 };
 
 /**
- * Transforma uma string de data com meses abreviados em pt-BR para a versão em inglês.
- *
- * @function transformDateToEnglish
- * @param {string} date - Data no formato com meses abreviados em pt-BR.
- * @returns {string} Data com os meses convertidos para o equivalente em inglês.
+ * Substitui os meses abreviados em pt-BR por seus equivalentes em inglês.
  */
-function transformDateToEnglish(date: string): string {
-  return date.replace(
+function normalizeMonthToEnglish(input: string): string {
+  return input.replace(
     /\b(jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez)\b/gi,
     (match) => monthMap[match.toLowerCase()]
   );
 }
 
 /**
- * Gera uma string formatada a partir de um objeto Date.
+ * Formata uma data para o formato pt-BR.
  *
- * @function generateDateString
- * @param {Date} date - Objeto Date a ser formatado.
- * @param {boolean} [includeTime=true] - Indica se a hora deve ser incluída na formatação.
- * @returns {string} Data formatada no padrão pt-BR.
- *
- * @example
- * // Retorna "25 jan 2023, 14:30"
- * generateDateString(new Date("2023-01-25T14:30:00"));
- *
- * @example
- * // Retorna "2023-01-25"
- * generateDateString(new Date("2023-01-25T14:30:00"), false);
+ * @param date - A data a ser formatada.
+ * @param options - Configurações de formatação.
+ * @returns String da data formatada ou mensagem de erro/undefined.
  */
-export function generateDateString(
-  date: Date,
-  includeTime: boolean = true
-): string {
-  return includeTime
-    ? format(date, 'dd MMM yyyy, HH:mm', { locale: ptBR })
-    : format(date, 'yyyy-MM-dd', { locale: ptBR });
+export function formatDateToPtBR(
+  date?: Date | string | null,
+  options: {
+    includeTime?: boolean;
+    formatStyle?: 'extended' | 'short';
+  } = {}
+): string | undefined {
+  if (!date) return undefined;
+
+  const parsedDate = date instanceof Date ? date : new Date(date);
+
+  if (isNaN(parsedDate.getTime())) return 'formato incorreto';
+
+  const { includeTime = true, formatStyle = 'extended' } = options;
+
+  const timePart = includeTime ? ', HH:mm' : '';
+  const formatStr =
+    formatStyle === 'extended'
+      ? `dd 'de' MMM 'de' yyyy${timePart}`
+      : `dd/MM/yyyy${includeTime ? ' HH:mm' : ''}`;
+
+  return format(parsedDate, formatStr, { locale: ptBR });
 }
 
 /**
- * Interpreta uma string de data com meses e dias abreviados em pt-BR.
+ * Converte uma string de data pt-BR com meses abreviados para objeto Date.
  *
- * @function generateDate
- * @param {string} date - Data no formato com meses abreviados em pt-BR.
- * @returns {(Date | null)} Objeto Date interpretado ou null se a data não puder ser analisada.
+ * @param input - A string com a data.
+ * @returns Objeto Date ou null.
  */
-export function generateDate(date: string): Date | null {
-  const transformedDate = transformDateToEnglish(date);
-  return chrono.parseDate(transformedDate);
+export function parsePtBRDateString(input: string): Date | null {
+  const normalized = normalizeMonthToEnglish(input);
+  return chrono.parseDate(normalized);
 }
 
 /**
- * Expressão regular para validar datas no formato pt-BR com meses abreviados.
- *
- * @constant {RegExp}
+ * Regex para validar datas como "25 de jan 2025, 14:30".
  */
-const dateFormatRegex =
-  /^(\d{1,2})\s(de\s)?(jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez)\s\d{4},\s([0-1]?\d|2[0-3]):[0-5]\d$/;
+const dateBrRegex =
+  /^(\d{1,2})\s(de\s)?(jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez)\s(de\s)?\d{4},?\s?([0-1]?\d|2[0-3]):[0-5]\d?$/i;
 
 /**
- * Valida se a string de data está no formato esperado (pt-BR abreviado).
- *
- * @function isValidDateFormat
- * @param {string} dateString - String de data a ser validada.
- * @returns {boolean} True se o formato da data for válido, caso contrário false.
+ * Valida se a string segue o formato pt-BR esperado.
  */
-export function isValidDateFormat(dateString: string): boolean {
-  return dateFormatRegex.test(dateString);
+export function isValidPtBRDateFormat(dateStr: string): boolean {
+  return dateBrRegex.test(dateStr.trim());
 }

@@ -2,7 +2,11 @@ import fs from 'fs';
 import { defineConfig } from 'orval';
 import path from 'path';
 
-const schemasPath = path.join(process.cwd(), 'src/http/generated/schemas');
+import { generateDefaultValueHooks } from './orval-generate-default-values';
+import { generateParamHooks } from './orval-generate-params-client';
+import { generateParamServerParsers } from './orval-generate-params-server';
+
+const schemasPath = path.join(process.cwd(), 'src/http/generated/zod');
 
 const applyZodErrorImport = `import { applyZodErrorMap } from "@/utils/apply-zod-error-map";\n\napplyZodErrorMap();\n\n`;
 
@@ -24,13 +28,49 @@ const processFiles = (dir: string) => {
 };
 
 export default defineConfig({
+  server: {
+    input: {
+      target: 'http://localhost:3001/api-json'
+    },
+    output: {
+      mode: 'split',
+      target: './src/http/generated/server/api-server.ts',
+      client: 'axios',
+      clean: true,
+      override: {
+        header: () =>
+          `/* eslint-disable */\n/* tslint:disable */\n// @ts-nocheck\n\n`,
+        mutator: {
+          path: './src/http/server.ts',
+          name: 'serverHttp',
+          default: true
+        }
+      }
+    },
+
+    hooks: {
+      afterAllFilesWrite: () => {
+        console.log('🔄 Aplicando ajustes nos arquivos Zod...');
+        processFiles(schemasPath);
+
+        console.log('🔄 Gerando hooks de query params (nuqs)...');
+        generateParamHooks();
+        console.log('🔄 Gerando params pelo servidor...');
+        generateParamServerParsers();
+
+        console.log('🔄 Gerando defaultValues...');
+        generateDefaultValueHooks();
+      }
+    }
+  },
+
   client: {
     input: {
       target: 'http://localhost:3001/api-json'
     },
     output: {
       mode: 'split',
-      target: './src/http/generated/api.ts',
+      target: './src/http/generated/client/api.ts',
       client: 'react-query',
       httpClient: 'axios',
       clean: true,
@@ -42,7 +82,8 @@ export default defineConfig({
         },
         mutator: {
           path: './src/http/client.ts',
-          name: 'http'
+          name: 'http',
+          default: true
         }
       }
     },
@@ -50,9 +91,16 @@ export default defineConfig({
       afterAllFilesWrite: () => {
         console.log('🔄 Aplicando ajustes nos arquivos Zod...');
         processFiles(schemasPath);
+
+        console.log('🔄 Gerando hooks de query params (nuqs)...');
+        generateParamHooks();
+
+        console.log('🔄 Gerando defaultValues...');
+        generateDefaultValueHooks();
       }
     }
   },
+
   clientZod: {
     input: {
       target: 'http://localhost:3001/api-json'
@@ -60,7 +108,7 @@ export default defineConfig({
     output: {
       mode: 'tags-split',
       client: 'zod',
-      target: './src/http/generated/schemas',
+      target: './src/http/generated/zod',
       fileExtension: '.zod.ts',
       override: {
         zod: {
@@ -73,12 +121,6 @@ export default defineConfig({
           },
           generateEachHttpStatus: true
         }
-      }
-    },
-    hooks: {
-      afterAllFilesWrite: () => {
-        console.log('🔄 Aplicando ajustes nos arquivos Zod...');
-        processFiles(schemasPath);
       }
     }
   }
